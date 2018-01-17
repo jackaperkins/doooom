@@ -8,7 +8,7 @@ void _saveData () {
   try {
     FileOutputStream fos = new FileOutputStream(sketchPath("")+"sectors.plop");
     ObjectOutputStream oos = new ObjectOutputStream(fos);
-    oos.writeObject(sectors);
+    oos.writeObject(map.sectors);
     fos.close();
   } 
   catch (IOException e) {
@@ -18,16 +18,16 @@ void _saveData () {
 
 void loadFromFile () {
   Sector[] fromDisk = _loadData();
-  verts = new Vertex[0];
-  sectors = new Sector[0];
+  map.verts = new Vertex[0];
+  map.sectors = new Sector[0];
   for(int i =0 ;i <fromDisk.length;i ++){
     println(i);
     if(i == 0){
       println("setting s1");
      s1 = fromDisk[i]; 
     }
-    addSector(fromDisk[i]);
-    addVertices(fromDisk[i].verts);
+    map.addSector(fromDisk[i]);
+    map.addVertices(fromDisk[i].verts);
   }
    println("Loaded");
 }

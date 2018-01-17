@@ -4,24 +4,25 @@ import java.lang.reflect.Method;
 
 PGraphics canvas;
 int ww, hh;
+int factor = 2; // display factor 1/factor
 
-Vertex[] verts;
-Sector[] sectors;
 
 Tool currentTool;
 boolean hovered; // someones hovering, dont draw other shit, asshole
 
-Sector s1;
+Map map;
 
 // CONFIG NUMBERS
 int gridSize = 8;
-int factor = 2;
+
 
 // tool GUI radiuses
 float vertexRadius = 10;
 float lineRadius = 6;
 
 PFont mono;
+
+Sector s1;
 
 // button storage
 // we need this because storing l/r events requires us to tkae notes
@@ -31,6 +32,9 @@ void setup () {
   noCursor();
   size(800, 600);
   noSmooth();
+  
+  map = new Map();
+  
   ww = width/factor;
   hh = height/factor;
   canvas = createGraphics(ww, hh);
@@ -38,50 +42,12 @@ void setup () {
   mono  = loadFont("mono.vlw");
   textFont(mono, 15);
 
-  int offX = (int)random(ww/2);
-  int offY = (int)random(hh/2);
-
-  verts = new Vertex[0];
-  sectors = new Sector[0];
   background(255);
   canvas.text("", 0, 0);
 
-  //loadFromFile();
 }
 
 
-void addSector (Sector s) {
-  sectors = (Sector[]) expand(sectors, sectors.length+1);
-  sectors[sectors.length-1] = s;
-}
-
-void addVertex (Vertex v) {
-  verts = (Vertex[]) expand(verts, verts.length+1);
-  verts[verts.length-1] = v;
-}
-
-void addVertices (Vertex[] list) {
-  for (int i = 0; i < list.length; i++) {
-    Vertex v = list[i];
-    verts = (Vertex[]) expand(verts, verts.length+1);
-    verts[verts.length-1] = v;
-  }
-}
-
-void drawSectors (Sector[] sects) {
-  for (int k = 0; k < sects.length; k++) {
-    Sector s = sects[k];
-    canvas.stroke(255);
-    canvas.fill(iToC(k, 5), iToC(k+2, 3), iToC(k, 7), 150);
-    canvas.beginShape();
-    for (int i = 0; i < s.verts.length; i++) {
-      Vertex currentPoint = s.verts[i];
-      canvas.ellipse(currentPoint.x, currentPoint.y, 3, 3);
-      canvas.vertex(currentPoint.x, currentPoint.y);
-    }
-    canvas.endShape(CLOSE);
-  }
-}
 
 void draw () {
 
@@ -90,7 +56,7 @@ void draw () {
     drawGrid();
 
     // do our mouse updates here
-    drawSectors(sectors);
+    map.drawSectors();
     runTools();
 
 
@@ -118,6 +84,7 @@ void drawGrid () {
 }
 
 void runTools () {
+  // drag vertex
   if (currentTool == null) {
     hovered = false;
     // test for hovering vertex
@@ -134,8 +101,8 @@ void runTools () {
     }
 
     // hover line segment
-    for (int s = 0; s < sectors.length; s++) {
-      Sector sec = sectors[s];
+    for (int s = 0; s < map.sectors.length; s++) {
+      Sector sec = map.sectors[s];
       for (int v = 0; v < sec.verts.length; v++) {
         Vertex firstVert = sec.verts[v];
         Vertex secondVert = sec.verts[(v+1)%sec.verts.length];
@@ -156,11 +123,11 @@ void runTools () {
 
           if (mousePressed && (mouseButton == LEFT)) {
             Vertex newGuy = new Vertex(mouseX/factor, mouseY/factor);
-            addVertex(newGuy);
+            map.addVertex(newGuy);
             sec.insertVertex(sec.verts[v], sec.verts[(v+1)%sec.verts.length], newGuy);
           } else  if (mousePressed && (mouseButton == RIGHT)) {
             PVector newGuy = new PVector(mouseX/factor, mouseY/factor);
-            currentTool = new ToolSplitSector(firstVert, secondVert, newGuy, sec);
+            currentTool = new ToolSplitSector(firstVert, secondVert, point, sec);
             //sec.insertVertex(sec.verts[v], sec.verts[(v+1)%sec.verts.length], newGuy);
           }
 
@@ -201,8 +168,8 @@ void mouseReleased () {
 
 
 Vertex hoverVertex () {
-  for (int i =0; i < verts.length; i++) {
-    Vertex point = verts[i];
+  for (int i =0; i < map.verts.length; i++) {
+    Vertex point = map.verts[i];
     if (abs(mouseX/factor - point.x) < 8 && abs(mouseY/factor - point.y) < 8 ) {
       return point;
     }
@@ -234,9 +201,9 @@ void spawnRandom () {
   Vertex a = new Vertex(-90+offX, 30+offY);
   Vertex b = new Vertex(52+offX, 50+offY);
   Vertex c = new Vertex(70+offX, -10+offY);
-  addVertex(a);
-  addVertex(b);
-  addVertex(c);
+  map.addVertex(a);
+  map.addVertex(b);
+  map.addVertex(c);
 
   s1 = new Sector();
   s1.addVertex(a);
@@ -244,12 +211,12 @@ void spawnRandom () {
   s1.addVertex(c);
 
 
-  addSector(s1);
+  map.addSector(s1);
 }
 
 void eraseAll () {
-  sectors = new Sector[0];
-  verts = new Vertex[0];
+  map.sectors = new Sector[0];
+  map.verts = new Vertex[0];
 }
 
 float iToC (int input, int radix) {

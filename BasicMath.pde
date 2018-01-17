@@ -1,3 +1,4 @@
+// return closest point on line segment towards p
 PVector pointOnLine (PVector a, PVector b, PVector p) {
   float vAPx = p.x - a.x;
   float vAPy = p.y - a.y;
@@ -16,6 +17,8 @@ PVector pointOnLine (PVector a, PVector b, PVector p) {
   return new PVector(nx, ny);
 }
 
+// given points a/b defining a segment, and p a point possibly near
+// return a point on linesegment within distance of p or return null
 PVector pointNearLine(PVector a, PVector b, PVector p, float distance) {
   PVector linePoint = pointOnLine(a,b,p);
   if(p.dist(linePoint)<distance){
