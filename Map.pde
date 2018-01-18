@@ -39,4 +39,25 @@ class Map {
       canvas.endShape(CLOSE);
     }
   }
+
+  Vertex hoverVertex () {
+    for (int i =0; i < verts.length; i++) {
+      Vertex point = verts[i];
+      if (abs(mouseX/factor - point.x) < 8 && abs(mouseY/factor - point.y) < 8 ) {
+        return point;
+      }
+    }
+    return null;
+  }
+  
+  // return true if first pair matches second pair, 
+  boolean sameSegment (Vertex a1, Vertex b1, Vertex a2, Vertex b2) {
+    if(a1 == a2 && b1 == b2) {
+      return true;
+    }
+      if(a1 == b2 && b1 == a2) {
+      return true;
+    }
+    return false;
+  }
 }

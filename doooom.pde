@@ -25,16 +25,17 @@ PFont mono;
 Sector s1;
 
 // button storage
-// we need this because storing l/r events requires us to tkae notes
-boolean mLeft, mLeftDown, mRight, mRightDown;
+// processing only has a single function for key events
+// so we have to manually store their state in parallel.
+boolean mLeft, mLeftDown, mRight, mRightDown, escapeDown;
 
 void setup () {
   noCursor();
   size(800, 600);
   noSmooth();
-  
+
   map = new Map();
-  
+
   ww = width/factor;
   hh = height/factor;
   canvas = createGraphics(ww, hh);
@@ -44,32 +45,32 @@ void setup () {
 
   background(255);
   canvas.text("", 0, 0);
-
 }
 
 
 
 void draw () {
 
-    canvas.beginDraw();
-    canvas.background(0, 0, 0);
-    drawGrid();
+  canvas.beginDraw();
+  canvas.background(0, 0, 0);
+  drawGrid();
 
-    // do our mouse updates here
-    map.drawSectors();
-    runTools();
+  // do our mouse updates here
+  map.drawSectors();
+  runTools();
 
 
-    if (currentTool == null) {
-      canvas.stroke(200);
-      canvas.line(mouseX/factor-3, mouseY/factor-3, mouseX/factor+3, mouseY/factor+3);
-      canvas.line(mouseX/factor+3, mouseY/factor-3, mouseX/factor-3, mouseY/factor+3);
-    }
-    canvas.endDraw();
-    image(canvas, 0, 0, width, height);
-  
-   mLeftDown = false;
+  if (currentTool == null) {
+    canvas.stroke(200);
+    canvas.line(mouseX/factor-3, mouseY/factor-3, mouseX/factor+3, mouseY/factor+3);
+    canvas.line(mouseX/factor+3, mouseY/factor-3, mouseX/factor-3, mouseY/factor+3);
+  }
+  canvas.endDraw();
+  image(canvas, 0, 0, width, height);
+
+  mLeftDown = false;
   mRightDown = false;
+  escapeDown = false;
 }
 
 void drawGrid () {
@@ -88,7 +89,7 @@ void runTools () {
   if (currentTool == null) {
     hovered = false;
     // test for hovering vertex
-    Vertex hoveredVert = hoverVertex();
+    Vertex hoveredVert = map.hoverVertex();
     if (hoveredVert != null) {
       canvas.fill(255);
       canvas.stroke(255);
@@ -138,7 +139,7 @@ void runTools () {
     }
   } else {
     currentTool.update();
-    canvas.fill(255);
+    canvas.fill(150, 200, 150);
     canvas.text(getToolName(currentTool), 5, 10);
     if (currentTool.done) {
       currentTool = null;
@@ -166,17 +167,6 @@ void mouseReleased () {
   }
 }
 
-
-Vertex hoverVertex () {
-  for (int i =0; i < map.verts.length; i++) {
-    Vertex point = map.verts[i];
-    if (abs(mouseX/factor - point.x) < 8 && abs(mouseY/factor - point.y) < 8 ) {
-      return point;
-    }
-  }
-  return null;
-}
-
 void keyPressed () {
   if (key == '1') {
     saveToFile();
@@ -186,6 +176,9 @@ void keyPressed () {
     spawnRandom();
   } else if (key == '0') {
     eraseAll();
+  } else if (key ==27) {
+    escapeDown = true;
+    key = 0;
   }
 }
 
